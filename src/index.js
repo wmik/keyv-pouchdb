@@ -16,6 +16,9 @@ function dbFactory(opts) {
 		memory: "pouchdb-adapter-memory",
 		websql: "pouchdb-adapter-node-websql"
 	};
+	if (!Object.prototype.hasOwnProperty.call(adapters, opts.pouchDB.adapter)) {
+		throw new Error(`Unsupported pouchdb adapter ${opts.pouchDB.adapter}`);
+	}
 	const adapter = [adapters[opts.pouchDB.adapter]];
 
 	loadPlugins(adapter.concat(opts.pouchDB.plugins));
@@ -32,7 +35,7 @@ class KeyvPouchdb extends EventEmitter {
 	constructor(opts) {
 		super();
 		if (typeof opts === "string") {
-			if (opts.indexOf(".db") > -1) {
+			if (opts.endsWith(".db")) {
 				opts = { pouchDB: { database: opts, adapter: "websql" } };
 			} else {
 				opts = { pouchDB: { database: opts, adapter: "http" } };
@@ -86,7 +89,8 @@ class KeyvPouchdb extends EventEmitter {
 
 	clear() {
 		const pouchdb = new PouchDB(this._opts.pouchDB.database, {
-			adapter: this._opts.pouchDB.adapter
+			[this._opts.pouchDB.adapter !== "http" && "adapter"]: this._opts.pouchDB
+				.adapter
 		});
 		return pouchdb.destroy().then(() => {
 			this.pouchdb = dbFactory(this._opts);
