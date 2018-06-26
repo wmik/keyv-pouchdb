@@ -9,7 +9,9 @@ Third party PouchDB storage adapter for Keyv.
 </p>
 </p>
 
-[![Build Status](https://travis-ci.com/wmik/keyv-pouchdb.svg?branch=master)](https://travis-ci.com/wmik/keyv-pouchdb)
+[![Build Status](https://travis-ci.com/wmik/keyv-pouchdb.svg?branch=master)](https://travis-ci.com/wmik/keyv-pouchdb) 
+![npm](https://img.shields.io/npm/v/keyv-pouchdb.svg)
+
 
 ## Motivation
 Leveraging [pouchdb-lru-cache](https://github.com/squarespace/pouchdb-lru-cache) as a [keyv-storage-adapter](https://github.com/topics/keyv-storage-adapter) that complies with the [api specs](https://github.com/lukechilds/keyv-test-suite).
@@ -37,7 +39,7 @@ const store = new KeyvPouchDB({
     // pouchDB configuration options
     adapter: "memory", // pouchdb adapter
     database: "keyv-pouchdb-cache", // database (string | uri)
-    plugins: [] // plugin list
+    remoteConfig: {} // configuration options for remote database
   }
 });
 
@@ -50,7 +52,6 @@ const store = new KeyvPouchDB({
 new KeyvPouchDB("http://localhost:3000/keyv-pouchdb-cache"); // loads `pouchdb-adapter-http`
 
 /*
- * 
  * 
  * or maybe even sqlite3
  * 

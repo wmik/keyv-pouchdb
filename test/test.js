@@ -135,6 +135,14 @@ const customTests = (test, Keyv, store) => {
 		t.is(keyv._opts.pouchDB.adapter, "websql");
 	});
 
+	test.serial("should throw if pouchdb adapter is not supported", t => {
+		const error = t.throws(
+			() => new KeyvPouchDB({ pouchDB: { adapter: "none" } }),
+			Error
+		);
+		t.is(error.message, "Unsupported pouchdb adapter none");
+	});
+
 	test.after.always(async () => {
 		const keyv = new Keyv({ store: store() });
 		await keyv.clear();

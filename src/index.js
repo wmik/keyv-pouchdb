@@ -6,25 +6,23 @@ const merge = require("lodash.merge");
 
 PouchDB.plugin(require("pouchdb-lru-cache"));
 
-const loadPlugins = plugins => {
-	plugins.forEach(plug => PouchDB.plugin(require(plug)));
-};
-
 function dbFactory(opts) {
 	const adapters = {
 		http: "pouchdb-adapter-http",
 		memory: "pouchdb-adapter-memory",
 		websql: "pouchdb-adapter-node-websql"
 	};
+
 	if (!Object.prototype.hasOwnProperty.call(adapters, opts.pouchDB.adapter)) {
 		throw new Error(`Unsupported pouchdb adapter ${opts.pouchDB.adapter}`);
 	}
-	const adapter = [adapters[opts.pouchDB.adapter]];
 
-	loadPlugins(adapter.concat(opts.pouchDB.plugins));
+	PouchDB.plugin(require(adapters[opts.pouchDB.adapter]));
 
 	const db = new PouchDB(opts.pouchDB.database, {
-		[opts.pouchDB.adapter !== "http" && "adapter"]: opts.pouchDB.adapter
+		[opts.pouchDB.adapter !== "http" && "adapter"]: opts.pouchDB.adapter,
+		...(() =>
+			opts.pouchDB.adapter === "http" ? opts.pouchDB.remoteConfig : {})()
 	});
 	db.initLru(opts.maxCacheSize);
 
@@ -32,13 +30,19 @@ function dbFactory(opts) {
 }
 
 class KeyvPouchdb extends EventEmitter {
-	constructor(opts) {
+	constructor(opts, config = {}) {
 		super();
 		if (typeof opts === "string") {
 			if (opts.endsWith(".db")) {
 				opts = { pouchDB: { database: opts, adapter: "websql" } };
 			} else {
-				opts = { pouchDB: { database: opts, adapter: "http" } };
+				opts = {
+					pouchDB: {
+						database: opts,
+						adapter: "http",
+						remoteConfig: { ...config }
+					}
+				};
 			}
 		}
 		this._opts = merge(
@@ -46,7 +50,7 @@ class KeyvPouchdb extends EventEmitter {
 				pouchDB: {
 					adapter: "memory",
 					database: "keyv-pouchdb-cache",
-					plugins: []
+					remoteConfig: {}
 				},
 				maxCacheSize: 5000000, // 5MB
 				overwriteExisting: false
