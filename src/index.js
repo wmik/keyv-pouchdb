@@ -96,10 +96,15 @@ class KeyvPouchdb extends EventEmitter {
 	}
 
 	clear() {
-		const pouchdb = new PouchDB(this._opts.pouchDB.database, {
-			[this._opts.pouchDB.adapter !== "http" && "adapter"]: this._opts.pouchDB
-				.adapter
-		});
+		const pouchdb = new PouchDB(
+			this._opts.pouchDB.database,
+			Object.assign(
+				{},
+				this._opts.pouchDB.adapter === "http"
+					? this._opts.pouchDB.remoteConfig
+					: { adapter: this._opts.pouchDB.adapter }
+			)
+		);
 		return pouchdb.destroy().then(() => {
 			this.pouchdb = dbFactory(this._opts);
 		});
